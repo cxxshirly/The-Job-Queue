@@ -1,0 +1,395 @@
+Script started on Wed 07 Dec 2016 10:20:57 PM EST
+]0;chen_x@cobra:~/Prog4[?1034h[chen_x@cobra Prog4]$ cat Node.java 
+public class Node {
+  private Object item;
+  private Node next;
+
+  public Node(Object newItem) {
+    item = newItem;
+    next = null;
+  } // end constructor
+
+  public Node(Object newItem, Node nextNode) {
+    item = newItem;
+    next = nextNode;
+  } // end constructor
+
+  public void setItem(Object newItem) {
+    item = newItem;
+  } // end setItem
+
+  public Object getItem() {
+    return item;
+  } // end getItem
+
+  public void setNext(Node nextNode) {
+    next = nextNode;
+  } // end setNext
+
+  public Node getNext() {
+    return next;
+  } // end getNext
+
+} // end class Node
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ cat Job.java
+
+
+//  Sample Client Code
+
+class Job
+{
+        public String jobName;
+        public int arrivalTime;
+        public int startTime;
+        public int runTime;
+        public int waitTime;
+        public int turnTime;
+
+	public Job()
+	{
+		jobName = "";
+		arrivalTime = 0;  startTime = 0;  runTime = 0;
+		waitTime = 0;  turnTime = 0;
+	}
+
+	public Job (String jobName, int arrivalTime, int runTime)
+	{
+		this.jobName = jobName;
+		this.arrivalTime = arrivalTime;
+		this.runTime = runTime;
+		this.startTime = -1;
+	}
+
+	public String toString()
+	{
+		return (jobName + "\t" + 
+	                arrivalTime + "\t" +
+			startTime + "\t" +
+	                runTime + "\t" + 
+                        waitTime + "\t" +
+                        turnTime);
+	}
+}
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ cat TimeShare.java
+import java.util.*;
+import java.io.*;
+//a program that simulate the operation of this system.
+public class TimeShare {
+
+	public static void main(String[] args)throws CloneNotSupportedException{
+		//creat a Queue that takes in the data
+		Queue queueIn = new Queue();
+		//read input file
+		readInputFile(args,queueIn);
+		if(!queueIn.isEmpty()){ 
+			//print the title
+			printTitle();
+			//calculation of the operation
+			jobs(queueIn);
+		}
+	}
+
+	// Read input file and check if any arguments pass into it
+	// Read jobs and place into the job queue
+	public static void readInputFile(String[] inputFile, Queue queueIn){
+		String jobName = "";
+		int arrivalTime = 0;
+		int runTime = 0;	
+
+		if(inputFile.length < 1){
+			System.out.println("Missing Input or invaild files. Please try again");	
+		}
+		else{
+			try{
+				//***Extra feature: the program can take more than one input file***
+				for(int i = 0; i < inputFile.length; i++){
+					String inputFileName = inputFile[i];
+					Scanner readIn = new Scanner(new File(inputFileName)); 	
+					while(readIn.hasNext()){
+						Scanner lsc = new Scanner(readIn.nextLine()).useDelimiter("\t");
+					        jobName     = lsc.next();
+						arrivalTime = lsc.nextInt();
+						runTime     = lsc.nextInt();
+						//	debug line below
+						//	System.out.println(jobName + " " + arrivalTime + " " + runTime);
+						queueIn.enqueue(new Job(jobName, arrivalTime, runTime));
+					}					 	
+				}
+			//print message if catch error
+			}catch(IOException e){
+				System.out.println(e.getMessage());
+			}
+		}
+	}
+	
+        // Print out summary report title  	
+	public static void printTitle(){
+		System.out.println();
+		System.out.println("------------------------------------------------");
+		System.out.println();
+		System.out.println("     Job Control Analysis: Summary Report\n");
+		System.out.println("job id  arrival start   run     wait    turnaround\n" +
+				   "        time    time    time    time    time      \n" +
+				   "------  ------  -----   ----    ----    ----------\n" );
+	}
+	
+	// Job control process
+	public static void jobs(Queue queueIn){
+
+		int clockTime = -1;
+		int waitTime  = 0;
+		int turnTime = 0;
+		int idleTime = 0;
+		int count = 0;
+		int jobCount = 0;
+		int cpuUsageTime = 0;
+
+		while(!queueIn.isEmpty()){
+			Job job = ((Job)queueIn.front());
+			//processing the first job that comes in
+			if(job.startTime == -1 && clockTime == -1){
+				job.startTime = 1;
+				clockTime = 1;
+				waitTime = 0;
+				turnTime = job.runTime + waitTime;
+				job.turnTime = turnTime;
+				//increment the clocktime by runtime
+				while( count < job.runTime){
+				        // uncommnet below for debug 
+					//System.out.println("Clock " + clockTime + " CPU " + job.jobName);
+					clockTime += 1;
+					cpuUsageTime +=1;
+					count ++;
+				}
+				count = 0;
+				System.out.println(queueIn.dequeue());
+				jobCount += 1;
+			}	
+			else{
+				// idle happen  when arrival time is less than clockTime
+				if(clockTime < job.arrivalTime){
+					while(clockTime < job.arrivalTime){
+						clockTime += 1;
+						idleTime += 1;
+					}
+				}
+				// if idle not happen
+				else{
+					job.startTime = clockTime;
+					job.waitTime = job.startTime - job.arrivalTime;
+					waitTime += job.waitTime;
+					turnTime = job.runTime + job.waitTime;
+					job.turnTime = turnTime;
+					//increment the clocktime by runtime
+					while(count < job.runTime){
+				        // uncommnet below for debug 
+					//	System.out.println("Clock " + clockTime + " CPU " + job.jobName);
+						clockTime += 1;
+						cpuUsageTime +=1;
+						count++;
+					}	
+					//reset count
+					count = 0;
+					System.out.println(queueIn.dequeue());
+					jobCount += 1;
+				}
+			}
+	    }
+
+	    // Job Control Analysis (use double and convert to 2 decimal places)
+	    System.out.printf("\n     Average Wait Time => %.2f\n", (double)waitTime/jobCount);
+	    System.out.printf("             CPU Usage => %.2f\n",  (double)cpuUsageTime);
+	    System.out.printf("              CPU Idle => %.2f\n",  (double)idleTime);
+	    System.out.printf("         CPU Usage (%s) => %.2f%s\n", "%", (double)((double)cpuUsageTime/(cpuUsageTime + idleTime) * 100),"%");
+	    System.out.println();
+	    System.out.println("------------------------------------------------");
+	    System.out.println();
+	}
+
+
+}
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ javac TimeShare.java
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ java TimeShare.[K jobs,dat[K[K[K[K.day[Kt
+
+------------------------------------------------
+
+     Job Control Analysis: Summary Report
+
+job id  arrival start   run     wait    turnaround
+        time    time    time    time    time      
+------  ------  -----   ----    ----    ----------
+
+job1	1	1	3	0	3
+job2	2	4	2	2	4
+job3	10	10	5	0	5
+
+     Average Wait Time => 0.67
+             CPU Usage => 10.00
+              CPU Idle => 4.00
+         CPU Usage (%) => 71.43%
+
+------------------------------------------------
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ java TimeShare jobs.dat1.dat
+
+------------------------------------------------
+
+     Job Control Analysis: Summary Report
+
+job id  arrival start   run     wait    turnaround
+        time    time    time    time    time      
+------  ------  -----   ----    ----    ----------
+
+jobA	1	1	3	0	3
+jobB	5	5	5	0	5
+jobC	10	10	5	0	5
+
+     Average Wait Time => 0.00
+             CPU Usage => 13.00
+              CPU Idle => 1.00
+         CPU Usage (%) => 92.86%
+
+------------------------------------------------
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ java TimeShare jobs1.dat[1P.dat2.dat
+
+------------------------------------------------
+
+     Job Control Analysis: Summary Report
+
+job id  arrival start   run     wait    turnaround
+        time    time    time    time    time      
+------  ------  -----   ----    ----    ----------
+
+job4	5	1	8	0	8
+job5	7	9	2	2	4
+job6	10	11	5	1	6
+job7	20	20	5	0	5
+job8	30	30	5	0	5
+
+     Average Wait Time => 0.60
+             CPU Usage => 25.00
+              CPU Idle => 9.00
+         CPU Usage (%) => 73.53%
+
+------------------------------------------------
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ java TimeShare jobs2.dat1.dat[1P.dat3.dat
+
+------------------------------------------------
+
+     Job Control Analysis: Summary Report
+
+job id  arrival start   run     wait    turnaround
+        time    time    time    time    time      
+------  ------  -----   ----    ----    ----------
+
+jobD	2	1	10	0	10
+jobE	7	11	2	4	6
+jobF	9	13	1	4	5
+
+     Average Wait Time => 2.67
+             CPU Usage => 13.00
+              CPU Idle => 0.00
+         CPU Usage (%) => 100.00%
+
+------------------------------------------------
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ java TimeShare jobs3.dat2.dat[1P.dat4.dat
+
+------------------------------------------------
+
+     Job Control Analysis: Summary Report
+
+job id  arrival start   run     wait    turnaround
+        time    time    time    time    time      
+------  ------  -----   ----    ----    ----------
+
+Amy	1	1	13	0	13
+Bob	8	14	22	6	28
+Cat	40	40	5	0	5
+
+     Average Wait Time => 2.00
+             CPU Usage => 40.00
+              CPU Idle => 4.00
+         CPU Usage (%) => 90.91%
+
+------------------------------------------------
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ java TimeShare jobs4.dat[1P.dat[C[C[C[C jobs1.dat jobs2.dat jobs3.dat jobs4.dat 
+
+------------------------------------------------
+
+     Job Control Analysis: Summary Report
+
+job id  arrival start   run     wait    turnaround
+        time    time    time    time    time      
+------  ------  -----   ----    ----    ----------
+
+job1	1	1	3	0	3
+job2	2	4	2	2	4
+job3	10	10	5	0	5
+jobA	1	15	3	14	17
+jobB	5	18	5	13	18
+jobC	10	23	5	13	18
+job4	5	28	8	23	31
+job5	7	36	2	29	31
+job6	10	38	5	28	33
+job7	20	43	5	23	28
+job8	30	48	5	18	23
+jobD	2	53	10	51	61
+jobE	7	63	2	56	58
+jobF	9	65	1	56	57
+Amy	1	66	13	65	78
+Bob	8	79	22	71	93
+Cat	40	101	5	61	66
+
+     Average Wait Time => 30.76
+             CPU Usage => 101.00
+              CPU Idle => 4.00
+         CPU Usage (%) => 96.19%
+
+------------------------------------------------
+
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ cat OOD.txt 
+///project 4
+///The Job Queue
+//Xinxin Chen
+//12/05/2016
+
+@main
+	//create a queue called queueIn for storing all the input data
+	//call the readInputFile(args,queueIn) to read in the args's file 
+	//call printTitle() to print the outline 
+	//call jobs(queueIn) to process the data and print out the result
+ 
+@readInputFile(String[] inputFile, Queue queueIn)
+	//*****Extra feature: the program will able to take more than one inpute file******
+	//use scanner and delimiter to read in the data file store the job title,arrival time, and run time in queueIn( queueIn contain a
+	  Job type which can store differet data) 
+	//if no args readin or file unreadable, print out an error message 
+
+@printTitle()
+	//prin out the main title 
+
+@jobs(Queue queueIn)
+	//set up variables: clockTime, waitTime(store the total wait time), turnTime, idleTime, count, jobCount, and cpuUsageTime
+	//while loop set when queue in not empty
+	//store the first object in queue to a job object called job
+	//if is the first job comes in, then set startTime and clockTime to 1 and use the runtime to add up the cpuUsageTime, reset the 
+	 count after the calculation, and dequeue (also print) the first job out
+	//if it is not the first job, if the arrival time is lager than the clocktime means there are idletimes between two jobs
+	//else if idle not happen then calculate the wait time and turn time 
+	//then use while loop to add up the CPU usage time and cloktime then reset cound and dequeue out (also print out)  the current job
+	
+	//below all lines are using print format to round the number to 2 decimal places and all variable were casting to double
+	//calculate the average wait time by divied the total waitTime by jobCount 
+	//Cpu usage is the cpuUageTime
+	//CPU Idle time is the idleTime
+	//CPU usage % is ((cpuUsageTime/cpuUsageTime + idleTime) * 100)
+	
+]0;chen_x@cobra:~/Prog4[chen_x@cobra Prog4]$ exit
+exit
+
+Script done on Wed 07 Dec 2016 10:22:21 PM EST

@@ -1,0 +1,36 @@
+///project 4
+///The Job Queue
+//Xinxin Chen
+//12/05/2016
+
+@main
+	//create a queue called queueIn for storing all the input data
+	//call the readInputFile(args,queueIn) to read in the args's file 
+	//call printTitle() to print the outline 
+	//call jobs(queueIn) to process the data and print out the result
+ 
+@readInputFile(String[] inputFile, Queue queueIn)
+	//*****Extra feature: the program will able to take more than one inpute file******
+	//use scanner and delimiter to read in the data file store the job title,arrival time, and run time in queueIn( queueIn contain a
+	  Job type which can store differet data) 
+	//if no args readin or file unreadable, print out an error message 
+
+@printTitle()
+	//prin out the main title 
+
+@jobs(Queue queueIn)
+	//set up variables: clockTime, waitTime(store the total wait time), turnTime, idleTime, count, jobCount, and cpuUsageTime
+	//while loop set when queue in not empty
+	//store the first object in queue to a job object called job
+	//if is the first job comes in, then set startTime and clockTime to 1 and use the runtime to add up the cpuUsageTime, reset the 
+	 count after the calculation, and dequeue (also print) the first job out
+	//if it is not the first job, if the arrival time is lager than the clocktime means there are idletimes between two jobs
+	//else if idle not happen then calculate the wait time and turn time 
+	//then use while loop to add up the CPU usage time and cloktime then reset cound and dequeue out (also print out)  the current job
+	
+	//below all lines are using print format to round the number to 2 decimal places and all variable were casting to double
+	//calculate the average wait time by divied the total waitTime by jobCount 
+	//Cpu usage is the cpuUageTime
+	//CPU Idle time is the idleTime
+	//CPU usage % is ((cpuUsageTime/cpuUsageTime + idleTime) * 100)
+	

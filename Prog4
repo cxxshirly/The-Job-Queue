@@ -1,0 +1,81 @@
+import java.util.*;
+import java.io.*;
+
+public class TimeShare {
+
+	public static void main(String[] args){
+		Queue queueIn = new Queue();
+		
+		//read input file
+		readInputFile(args,queueIn);
+		printSummaryReport(jobs(queueIn));
+	}
+
+	// Read input file and check if any arguments pass into it
+	// Read jobs and place into the job queue
+	public static void readInputFile(String[] inputFile, Queue queueIn){
+		String jobName = "";
+		int arrivalTime = 0;
+		int runTime = 0;	
+
+		if(inputFile.length < 1){
+			System.out.println("Missing Input files. Please try again");	
+		}
+		else{
+			try{
+				String inputFileName = inputFile[0];
+				Scanner readIn = new Scanner(new File(inputFileName)); 	
+				while(readIn.hasNext()){
+					Scanner lsc = new Scanner(readIn.nextLine()).useDelimiter("\t");
+				        jobName     = lsc.next();
+					arrivalTime = lsc.nextInt();
+					runTime     = lsc.nextInt();
+					
+					System.out.println(jobName + " " + arrivalTime + " " + runTime);
+					queueIn.enqueue(new Job(jobName, arrivalTime, runTime));					 	
+				}
+			}catch(IOException e){
+				System.out.println(e.getMessage());
+			}
+		}
+	}
+	
+        // Print out summary report title  	
+	public static void printSummaryReport(Queue queueOut){
+		System.out.println("Job Control Analysis: Summary Report\n");
+		System.out.println("job id   arrival   start   run   wait   turnaround\n" +
+				   "         time      time   time   time   time      \n" +
+				   "------   -------   -----  ----   ----   ----------\n" );
+		while(!queueOut.isEmpty()){
+			System.out.println(queueOut.dequeue());
+		}
+	}
+
+	public static Queue jobs(Queue queueIn) throws CloneNotSupportedException{
+		Queue queueOut;
+		int startTime = -1;
+		int waitTime;
+		int turnTime;
+		while(!queueIn.isEmpty()){
+			Job temp = queueIn.dequeue().clone();
+			if(temp.startTime == -1 && startTime == -1){
+				temp.startTime = 1;
+				temp.turnTime = temp.runTime; 
+				startTime = 1;
+				waitTime = 0;
+				turnTime =  temp.turnTime;  
+				queueOut.enqueue(temp);
+			}
+			else{
+			        temp.startTime = turnTime + 1;
+				startTime = temp.startTime;
+				temp.waitTime = startTime - temp.arrivalTime;
+				waitTime = temp.waitTime;
+				temp.turnTime = temp.runTime + temp.waitTime;
+				turnTime = temp.turnTime;
+				queueOut.enqueue(temp);
+			}
+	    return queueOut;		
+	    }
+	}
+}
